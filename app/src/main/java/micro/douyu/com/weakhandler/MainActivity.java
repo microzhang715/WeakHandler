@@ -10,8 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import java.lang.ref.WeakReference;
-
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -34,15 +32,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
         weakHandler.sendEmptyMessage(1);
-
-        weakHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "消息到达");
-            }
-        }, 60 * 60 * 1000);
-
+        weakHandler.postDelayed(sRunnable, 60 * 60 * 1000);
     }
+
+    private Runnable sRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            Log.d(TAG, "收到消息");
+        }
+    };
 
     private WeakHandler weakHandler = new WeakHandler(Looper.getMainLooper(), new Handler.Callback() {
         @Override
@@ -60,4 +60,11 @@ public class MainActivity extends AppCompatActivity {
         }
     });
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //对于长时间才可能执行的代码，最好是在最后destroy的时候进行清理。
+        //weakHandler由于是弱引用，不清理也是可以释放掉的
+        weakHandler.removeCallbacks(sRunnable);
+    }
 }
